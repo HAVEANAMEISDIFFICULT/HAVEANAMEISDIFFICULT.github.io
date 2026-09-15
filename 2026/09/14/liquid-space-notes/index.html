@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-aurora="sunset">
+<head>
+  <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="generator" content="Hexo">
+
+<title>Liquid Space 设计笔记 · Liquid Space</title>
+
+<meta name="description" content="A liquid-glass Hexo theme demo">
+
+<meta name="author" content="Liquid Space">
+
+<meta name="keywords" content="hexo,liquid-glass,theme">
+
+
+<meta property="og:type" content="article">
+<meta property="og:title" content="Liquid Space 设计笔记 · Liquid Space">
+
+<meta property="og:description" content="A liquid-glass Hexo theme demo">
+
+<meta property="og:site_name" content="Liquid Space">
+<meta property="og:locale" content="zh-CN">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Liquid Space 设计笔记 · Liquid Space">
+
+<meta name="twitter:description" content="A liquid-glass Hexo theme demo">
+
+
+<link rel="canonical" href="https://haveanameisdifficult.github.io/2026/09/14/liquid-space-notes/index.html">
+<link rel="stylesheet" href="/css/liquid.css">
+
+<script>
+  (function () {
+    var mode = 'system';
+    var dark = mode === 'dark' ||
+      (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (dark) document.documentElement.classList.add('dark');
+  })();
+</script>
+
+
+</head>
+<body class="min-h-screen font-sans text-ink">
+  <div class="aurora-canvas" aria-hidden="true">
+  <div class="aurora-shift">
+    <div class="aurora-blob aurora-blob-a"></div>
+    <div class="aurora-blob aurora-blob-b"></div>
+    <div class="aurora-blob aurora-blob-c"></div>
+    <div class="aurora-blob aurora-blob-d"></div>
+  </div>
+</div>
+
+  <header
+  id="liquid-nav"
+  class="fixed inset-x-0 top-0 z-nav safe-px pt-4"
+>
+  
+  <div class="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-transparent">
+    <div
+      id="reading-progress"
+      class="reading-progress h-full w-full origin-left bg-accent"
+    ></div>
+  </div>
+  
+
+  <div class="relative flex items-center justify-center gap-3">
+    
+    <a
+  href="/"
+  class="liquid-glass-btn liquid-specular grid shrink-0 place-items-center rounded-full text-ink no-underline"
+  title="返回"
+  aria-label="返回"
+>
+  <svg
+    class="h-6 w-6"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    aria-hidden="true"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M15.75 19.5L8.25 12l7.5-7.5"
+    />
+  </svg>
+</a>
+
+    
+
+  <nav
+    id="nav-capsule"
+    data-lens="capsule"
+    class="liquid-capsule liquid-specular liquid-nav-shell relative items-center"
+    aria-label="菜单"
+  >
+    <div id="nav-indicator" class="nav-indicator" aria-hidden="true"></div>
+    <a
+      href="/"
+      class="liquid-nav-btn liquid-nav-btn-lg relative z-10 flex items-center rounded-capsule text-meta text-ink no-underline"
+    >
+      <span class="nav-label">Liquid Space</span>
+    </a>
+
+    <div class="liquid-nav-divider bg-ink/15" aria-hidden="true"></div>
+
+    
+    
+    <a
+      href="/"
+      class="liquid-nav-btn liquid-nav-btn-lg relative z-10 flex items-center rounded-capsule text-meta text-ink no-underline"
+      data-nav-menu
+      
+    >
+      
+      <svg class="liquid-nav-icon shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955a1.5 1.5 0 012.122 0L22.28 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg>
+      <span class="nav-label">首页</span>
+    </a>
+    
+    <a
+      href="/archives"
+      class="liquid-nav-btn liquid-nav-btn-lg relative z-10 flex items-center rounded-capsule text-meta text-ink no-underline"
+      data-nav-menu
+      
+    >
+      
+      <svg class="liquid-nav-icon shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+      <span class="nav-label">归档</span>
+    </a>
+    
+    <a
+      href="/about"
+      class="liquid-nav-btn liquid-nav-btn-lg relative z-10 flex items-center rounded-capsule text-meta text-ink no-underline"
+      data-nav-menu
+      
+    >
+      
+      <svg class="liquid-nav-icon shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a8.25 8.25 0 0115 0"/></svg>
+      <span class="nav-label">关于</span>
+    </a>
+    
+
+    
+    <div class="liquid-nav-divider bg-ink/15" aria-hidden="true"></div>
+    <button
+      type="button"
+      id="toc-toggle"
+      class="liquid-badge liquid-nav-btn liquid-nav-btn-lg relative z-10 flex items-center rounded-capsule text-meta text-ink"
+      aria-expanded="false"
+      aria-controls="toc-panel"
+    >
+      <svg class="liquid-nav-icon shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"/>
+      </svg>
+      <span class="nav-label hidden sm:inline">目录</span>
+    </button>
+    
+  </nav>
+  </div>
+</header>
+
+
+  <main class="relative z-10 mx-auto w-full max-w-shell safe-px pb-24 pt-32">
+    <article class="mx-auto w-full max-w-reading animate-float-up">
+  <header class="mb-8 text-center">
+    <div class="mb-4 flex flex-wrap items-center justify-center gap-2">
+      <time class="liquid-badge text-ink-faint" datetime="2026-09-14T02:30:00.000Z">
+        发布于 2026-09-14
+      </time>
+      
+      <span class="liquid-badge text-ink-faint">
+        约 1 分钟
+      </span>
+      <span class="liquid-badge text-ink-faint">
+        408 字
+      </span>
+    </div>
+
+    <h1 class="mb-4 font-display text-hero text-ink text-shadow-soft">
+      Liquid Space 设计笔记
+    </h1>
+
+    
+    <div class="flex flex-wrap items-center justify-center gap-2">
+      
+      <a
+        href="/tags/design/"
+        class="liquid-badge text-accent no-underline transition hover:bg-white/20"
+      >
+        #design
+      </a>
+      
+      <a
+        href="/tags/liquid-glass/"
+        class="liquid-badge text-accent no-underline transition hover:bg-white/20"
+      >
+        #liquid-glass
+      </a>
+      
+    </div>
+    
+  </header>
+
+  <div class="liquid-reading relative px-6 py-10 sm:px-10 sm:py-12">
+    <div class="prose-liquid relative z-10">
+      <p>本主题的设计核心围绕 <strong>空间感</strong>、<strong>有机流体</strong> 与 <strong>桌面级精致感</strong> 展开。</p>
+<h2 id="光学材质"><a href="#光学材质" class="headerlink" title="光学材质"></a>光学材质</h2><p>玻璃容器必须具备“双层边缘”：</p>
+<ol>
+<li>迎光面（顶部）为锐利的白色半透明高光</li>
+<li>背光面（底部）为微弱的内凹暗角</li>
+</ol>
+<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.liquid-glass</span> &#123;</span><br><span class="line">  <span class="attribute">backdrop-filter</span>: <span class="built_in">saturate</span>(<span class="number">1.45</span>) <span class="built_in">blur</span>(<span class="number">28px</span>);</span><br><span class="line">  <span class="attribute">box-shadow</span>:</span><br><span class="line">    <span class="number">0</span> <span class="number">24px</span> <span class="number">48px</span> -<span class="number">12px</span> <span class="built_in">rgba</span>(<span class="number">15</span>, <span class="number">23</span>, <span class="number">42</span>, <span class="number">0.22</span>),</span><br><span class="line">    inset <span class="number">0</span> <span class="number">1px</span> <span class="number">0</span> <span class="number">0</span> <span class="built_in">rgba</span>(<span class="number">255</span>, <span class="number">255</span>, <span class="number">255</span>, <span class="number">0.55</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="动效准则"><a href="#动效准则" class="headerlink" title="动效准则"></a>动效准则</h2><blockquote>
+<p>元素的出现、悬停、点击绝不使用生硬的线性变换。</p>
+</blockquote>
+<p>所有缩放与位移需引入物理阻尼感，点击按钮时会有类似挤压软质硅胶的轻微塌陷与 Q 弹回缩。</p>
+<h3 id="测试列表"><a href="#测试列表" class="headerlink" title="测试列表"></a>测试列表</h3><ul>
+<li><code>ease-jelly</code> 用于交互</li>
+<li><code>ease-fluid</code> 用于过渡</li>
+<li>光标跟随高光使用 CSS 变量</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>blur</td>
+<td>28px</td>
+</tr>
+<tr>
+<td>rim</td>
+<td>inset 1px white</td>
+</tr>
+<tr>
+<td>grain</td>
+<td>4% noise</td>
+</tr>
+</tbody></table>
+<p>欢迎在本地运行 <code>hexo s</code> 查看效果。</p>
+
+    </div>
+  </div>
+
+  <nav class="mt-10 grid gap-4 sm:grid-cols-2">
+    
+    <a
+      href="/2026/09/16/hello-world/"
+      class="liquid-card group flex flex-col gap-1 p-5 no-underline text-inherit"
+    >
+      <span class="text-meta text-ink-faint">上一篇</span>
+      <span class="line-clamp-2 font-display text-body font-semibold text-ink transition group-hover:text-accent">
+        Hello World
+      </span>
+    </a>
+    
+    
+    <a
+      href="/2026/09/13/tailwind-tokens/"
+      class="liquid-card group flex flex-col gap-1 p-5 no-underline text-inherit sm:text-right"
+    >
+      <span class="text-meta text-ink-faint">下一篇</span>
+      <span class="line-clamp-2 font-display text-body font-semibold text-ink transition group-hover:text-accent">
+        Hexo 与 Tailwind 设计令牌
+      </span>
+    </a>
+    
+  </nav>
+</article>
+
+
+<aside
+  id="toc-panel"
+  class="fixed bottom-6 right-4 z-nav hidden w-64 sm:right-6"
+  aria-label="目录"
+>
+  <div class="liquid-card liquid-specular p-4">
+    <p class="mb-2 text-meta font-semibold text-ink">目录</p>
+    <nav id="toc-root" class="toc-list text-meta text-ink-muted">
+      <div id="toc-indicator" class="toc-indicator" aria-hidden="true"></div>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%89%E5%AD%A6%E6%9D%90%E8%B4%A8"><span class="toc-text">光学材质</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8A%A8%E6%95%88%E5%87%86%E5%88%99"><span class="toc-text">动效准则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E5%88%97%E8%A1%A8"><span class="toc-text">测试列表</span></a></li></ol></li></ol>
+    </nav>
+  </div>
+</aside>
+
+
+  </main>
+
+  <footer class="relative z-10 mx-auto w-full max-w-shell safe-px pb-10 pt-8">
+  <div class="liquid-capsule mx-auto flex max-w-fit flex-col items-center gap-1 px-6 py-3 text-meta text-ink-muted sm:flex-row sm:gap-3">
+    <span>
+      &copy;
+      2026
+      Liquid Space
+    </span>
+    <span class="hidden sm:inline text-ink-faint" aria-hidden="true">·</span>
+    
+    <span>由 Hexo 与 Liquid Space 驱动</span>
+    
+  </div>
+</footer>
+
+  <script>
+  window.LIQUID_CONFIG = {
+    i18n: {
+      copy: &#34;复制&#34;,
+      copy_success: &#34;已复制&#34;,
+      copy_failed: &#34;复制失败&#34;,
+      loading: &#34;加载中&#34;
+    },
+    tocDepth: 3,
+    enableCopy: true,
+    isPost: true
+  };
+</script>
+
+  <script src="/js/liquid-lens.js" defer></script>
+  <script src="/js/liquid.js" defer></script>
+</body>
+</html>

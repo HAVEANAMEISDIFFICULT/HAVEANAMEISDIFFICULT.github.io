@@ -31,13 +31,14 @@
     );
   }
 
-  /** Rim-only inward refraction — no pinch-to-center, no out-of-bounds sample. */
+  /** Rim-only inward refraction — warp only near the SDF boundary. */
   function lensFragment(uv, halfW, halfH, radiusNorm) {
     var ix = uv.x - 0.5;
     var iy = uv.y - 0.5;
     var distanceToEdge = roundedRectSDF(ix, iy, halfW, halfH, radiusNorm);
-    var edge = smoothStep(0.14, 0.0, distanceToEdge);
-    var pull = edge * 0.22;
+    // Band lives on the rim: ~0 inside core → full pull at the boundary
+    var edge = smoothStep(0.18, 0.0, distanceToEdge);
+    var pull = edge * 0.35;
     return {
       x: 0.5 + ix * (1 - pull),
       y: 0.5 + iy * (1 - pull),
@@ -156,10 +157,11 @@
     var feMap = document.createElementNS(SVG_NS, 'feDisplacementMap');
     feMap.setAttribute('in', 'SourceGraphic');
     feMap.setAttribute('in2', mapId);
-    feMap.setAttribute('x-channel-selector', 'R');
-    feMap.setAttribute('y-channel-selector', 'G');
+    feMap.setAttribute('xChannelSelector', 'R');
+    feMap.setAttribute('yChannelSelector', 'G');
     // Cap hard so we never sample outside the backdrop snapshot
-    var safeScale = Math.min(built.scale, Math.min(shape.w, shape.h) * 0.08, 10);
+    // Stronger nav warp: allow more of the SDF field (still below mirror range)
+    var safeScale = Math.min(built.scale, Math.min(shape.w, shape.h) * 0.22, 18);
     feMap.setAttribute('scale', String(safeScale));
 
     filter.appendChild(feImage);
@@ -195,7 +197,9 @@
   }
 
   var SHAPE_BY_KIND = {
-    capsule: { halfW: 0.4, halfH: 0.26, radius: 0.5 },
+    // Large SDF core ≈ element → only the rim sits in the warp field
+    // (small core bends the middle too).
+    capsule: { halfW: 0.46, halfH: 0.38, radius: 0.5 },
     hero: { halfW: 0.42, halfH: 0.36, radius: 0.26 },
   };
 
@@ -244,6 +248,34 @@
     // Wait a frame so layout/fonts settle before measuring
     window.requestAnimationFrame(function () {
       measureAndApply();
+
+      var nav = document.getElementById('nav-capsule');
+      if (!nav) return;
+
+      // Collapse/expand changes size — stale filter region = one-sided warp
+      var lastW = 0;
+      var lastH = 0;
+      var raf = 0;
+
+      function rebuildIfResized() {
+        raf = 0;
+        var r = nav.getBoundingClientRect();
+        var w = Math.round(r.width);
+        var h = Math.round(r.height);
+        if (w === lastW && h === lastH) return;
+        lastW = w;
+        lastH = h;
+        window.LiquidLens.rebuild();
+      }
+
+      var r0 = nav.getBoundingClientRect();
+      lastW = Math.round(r0.width);
+      lastH = Math.round(r0.height);
+
+      nav.addEventListener('liquid:navlayout', function () {
+        if (raf) return;
+        raf = window.requestAnimationFrame(rebuildIfResized);
+      });
     });
 
     var resizeTimer = 0;

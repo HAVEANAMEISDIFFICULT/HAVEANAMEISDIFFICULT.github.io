@@ -506,7 +506,7 @@
     );
   }
 
-  /* ---------- Apple-style nav indicator ---------- */
+  /* ---------- Apple-style nav indicator + glass cursor drag ---------- */
   function initNavIndicator() {
     var nav = document.getElementById('nav-capsule');
     var indicator = document.getElementById('nav-indicator');
@@ -516,6 +516,15 @@
     if (!items.length) return;
 
     var busy = false;
+    var pressing = false;
+    var dragging = false;
+    var dragMoved = false;
+    var suppressClick = false;
+    var startItem = null;
+    var startX = 0;
+    var startY = 0;
+    var pressSize = null;
+    var DRAG_SQ = 36; // 6px
 
     function measure(el) {
       // offset* ignores CSS transforms (:active scale)
@@ -541,6 +550,63 @@
         height: 52,
         circle: false,
       };
+    }
+
+    /** Oversized glass cursor: wider than the item, taller than the nav shell. */
+    function pressMeasure(el) {
+      var m = measure(el);
+      var padX = 12;
+      var navH = nav.offsetHeight || 67;
+      var h = Math.round(Math.max(navH + 28, 88));
+      var midY = m.top + m.height / 2;
+      return {
+        left: Math.round(m.left - padX),
+        top: Math.round(midY - h / 2),
+        width: Math.round(m.width + padX * 2),
+        height: h,
+        circle: false,
+      };
+    }
+
+    /** Keep the dragged cursor inside the nav shell (horizontal clamp). */
+    function dragGeom(localX, size) {
+      var navW = nav.clientWidth;
+      var pad = 2;
+      var left = Math.round(localX - size.width / 2);
+      if (left < pad) left = pad;
+      if (left > navW - size.width - pad) left = Math.max(pad, navW - size.width - pad);
+      var navH = nav.offsetHeight || 67;
+      var top = Math.round((navH - size.height) / 2);
+      return {
+        left: left,
+        top: top,
+        width: size.width,
+        height: size.height,
+        circle: false,
+      };
+    }
+
+    function itemFromPoint(clientX, clientY) {
+      var hit = null;
+      var best = 1e9;
+      for (var i = 0; i < items.length; i++) {
+        var r = items[i].getBoundingClientRect();
+        if (clientX < r.left || clientX > r.right) continue;
+        var dy = 0;
+        if (clientY < r.top) dy = r.top - clientY;
+        else if (clientY > r.bottom) dy = clientY - r.bottom;
+        if (dy < 40 && dy < best) {
+          best = dy;
+          hit = items[i];
+        }
+      }
+      return hit;
+    }
+
+    function setDragTarget(el) {
+      for (var i = 0; i < items.length; i++) {
+        items[i].classList.toggle('is-drag-target', items[i] === el);
+      }
     }
 
     function applyGeom(m, instant) {
@@ -590,13 +656,131 @@
       );
     }
 
+    function activateLink(link) {
+      if (busy || !link) return;
+      if (link.getAttribute('aria-current') === 'page') return;
+
+      busy = true;
+      nav.classList.add('nav-capsule-busy');
+      place(link, 'switch');
+
+      for (var i = 0; i < items.length; i++) {
+        items[i].removeAttribute('aria-current');
+      }
+      link.setAttribute('aria-current', 'page');
+
+      window.setTimeout(function () {
+        window.location.href = link.href;
+      }, 360);
+    }
+
+    function clearPressState() {
+      pressing = false;
+      dragging = false;
+      nav.classList.remove('is-drag-active');
+      indicator.classList.remove('is-press', 'is-dragging');
+      setDragTarget(null);
+    }
+
     // Initial placement after layout
     window.requestAnimationFrame(function () {
       place(activeItem(), 'instant');
     });
 
+    nav.addEventListener('pointerdown', function (e) {
+      if (busy) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+      var link =
+        e.target && e.target.closest ? e.target.closest('[data-nav-menu]') : null;
+      if (!link || !nav.contains(link)) return;
+
+      startX = e.clientX;
+      startY = e.clientY;
+      dragMoved = false;
+      dragging = false;
+      suppressClick = false;
+      startItem = link;
+      pressSize = pressMeasure(link);
+
+      pressing = true;
+      nav.classList.add('is-drag-active');
+      indicator.classList.add('is-on', 'is-press');
+      indicator.classList.remove('is-circle', 'is-boost', 'is-instant');
+      applyGeom(pressSize, false);
+
+      // Keep click alive — only native <a> drag is blocked (see dragstart below).
+      try {
+        nav.setPointerCapture(e.pointerId);
+      } catch (err) {}
+    });
+
+    // Native link-drag fires pointercancel and kills our drag; block it.
+    nav.addEventListener('dragstart', function (e) {
+      e.preventDefault();
+    });
+
+    nav.addEventListener('pointermove', function (e) {
+      if (!pressing) return;
+
+      var dx = e.clientX - startX;
+      var dy = e.clientY - startY;
+      if (!dragging && dx * dx + dy * dy > DRAG_SQ) {
+        dragMoved = true;
+        dragging = true;
+        indicator.classList.add('is-dragging');
+      }
+      if (!dragging || !pressSize) return;
+
+      var rect = nav.getBoundingClientRect();
+      applyGeom(dragGeom(e.clientX - rect.left, pressSize), false);
+      setDragTarget(itemFromPoint(e.clientX, e.clientY));
+    });
+
+    function endPress(e) {
+      if (!pressing) return;
+
+      var target = itemFromPoint(e.clientX, e.clientY);
+      var wasDrag = dragMoved;
+      var from = startItem;
+
+      clearPressState();
+      // Pointer capture retargets the click to the capsule — handle nav here.
+      suppressClick = true;
+
+      if (wasDrag) {
+        // Drag-release: snap small/frosted onto the item under the cursor.
+        place(target || activeItem(), 'soft');
+        if (target && target !== from) activateLink(target);
+        return;
+      }
+
+      // Clean click — expand → switch → navigate (same as the old click path).
+      if (target && target.getAttribute('aria-current') !== 'page') {
+        activateLink(target);
+        return;
+      }
+      place(target || activeItem(), 'soft');
+    }
+
+    nav.addEventListener('pointerup', endPress);
+    nav.addEventListener('pointercancel', function () {
+      if (!pressing) return;
+      clearPressState();
+      place(activeItem(), 'soft');
+      suppressClick = false;
+    });
+
     items.forEach(function (link) {
       link.addEventListener('click', function (e) {
+        if (suppressClick) {
+          e.preventDefault();
+          e.stopPropagation();
+          suppressClick = false;
+          return;
+        }
+
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         var href = link.getAttribute('href');
         if (!href || href.charAt(0) === '#') return;
@@ -608,24 +792,14 @@
         }
 
         e.preventDefault();
-        busy = true;
-        nav.classList.add('nav-capsule-busy');
-        place(link, 'switch');
-
-        items.forEach(function (item) {
-          item.removeAttribute('aria-current');
-        });
-        link.setAttribute('aria-current', 'page');
-
-        window.setTimeout(function () {
-          window.location.href = link.href;
-        }, 360);
+        activateLink(link);
       });
     });
 
     window.addEventListener(
       'resize',
       function () {
+        if (pressing) return;
         place(activeItem(), 'instant');
       },
       { passive: true }
@@ -633,7 +807,7 @@
 
     // Track the active button tightly while collapse/expand animates
     nav.addEventListener('liquid:navlayout', function () {
-      if (!busy) place(activeItem(), 'instant');
+      if (!busy && !pressing) place(activeItem(), 'instant');
     });
   }
 

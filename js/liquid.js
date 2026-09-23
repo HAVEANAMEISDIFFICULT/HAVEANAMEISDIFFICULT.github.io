@@ -90,7 +90,10 @@
       window.clearTimeout(syncTimer);
       syncTimer = window.setTimeout(function () {
         nav.dispatchEvent(new CustomEvent('liquid:navlayout'));
-      }, duration + 60);
+        if (window.LiquidLens && window.LiquidLens.updateNav) {
+          window.LiquidLens.updateNav();
+        }
+      }, duration + 120);
     }
 
     onRafPassive(window, 'scroll', function () {
@@ -555,7 +558,7 @@
     /** Oversized glass cursor: wider than the item, taller than the nav shell. */
     function pressMeasure(el) {
       var m = measure(el);
-      var padX = 12;
+      var padX = 14;
       var navH = nav.offsetHeight || 67;
       var h = Math.round(Math.max(navH + 28, 88));
       var midY = m.top + m.height / 2;
@@ -680,6 +683,11 @@
       nav.classList.remove('is-drag-active');
       indicator.classList.remove('is-press', 'is-dragging');
       setDragTarget(null);
+
+      // Remove the SVG displacement lens from the glass cursor
+      if (window.LiquidLens && window.LiquidLens.clearLens) {
+        window.LiquidLens.clearLens(indicator);
+      }
     }
 
     // Initial placement after layout
@@ -710,6 +718,11 @@
       indicator.classList.remove('is-circle', 'is-boost', 'is-instant');
       applyGeom(pressSize, false);
 
+      // Apply SVG displacement lens for glass distortion on the cursor edges
+      if (window.LiquidLens && window.LiquidLens.applyLens) {
+        window.LiquidLens.applyLens(indicator, 'cursor', pressSize.width, pressSize.height);
+      }
+
       // Keep click alive — only native <a> drag is blocked (see dragstart below).
       try {
         nav.setPointerCapture(e.pointerId);
@@ -734,7 +747,10 @@
       if (!dragging || !pressSize) return;
 
       var rect = nav.getBoundingClientRect();
-      applyGeom(dragGeom(e.clientX - rect.left, pressSize), false);
+      var localX = e.clientX - rect.left;
+      var dg = dragGeom(localX, pressSize);
+      
+      applyGeom(dg, false);
       setDragTarget(itemFromPoint(e.clientX, e.clientY));
     });
 
